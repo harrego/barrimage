@@ -1,0 +1,44 @@
+service: BarrieImageTextService
+frameworkVersion: '2'
+
+custom:
+  bucket: barrie-image-text
+  bucketUrl: "http://barrie-image-text.s3-website-us-east-1.amazonaws.com"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+
+  stage: dev
+  stackName: BarrieImageTextService
+  region: us-east-1
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:PutObject"
+        - "s3:PutObjectAcl"
+      Resource:
+        - "arn:aws:s3:::${self:custom.bucket}"
+        - "arn:aws:s3:::${self:custom.bucket}/*"
+
+functions:
+  dukereading:
+    handler: handler.dukereading
+    
+    events:
+      - httpApi:
+          path: /dukereading
+          method: post
+      - s3: ${self:custom.bucket}
+    environment:
+      Bucket: ${self:custom.bucket}
+      BucketUrl: ${self:custom.bucketUrl}
+      
+resources:
+  Resources:
+    NewResource:
+      Type: "AWS::S3::Bucket"
+      Properties:
+        BucketName: ${self:custom.bucket}
